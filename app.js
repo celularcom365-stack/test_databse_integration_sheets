@@ -1,5 +1,9 @@
 import express from 'express';
 import morgan from 'morgan';
+import Prospect from './src/routes/Prospect.route.js';
+import ClientType from './src/routes/ClientType.route.js';
+import ClientAddress from './src/routes/ClientAddress.route.js';
+
 
 const app = express();
 
@@ -9,11 +13,11 @@ app.use(morgan('dev'));
 // Middleware for parsing JSON bodies
 app.use(express.json());
 
-// Sample route
-app.post('/', (req, res) => {
-    console.log('Received body:', req.body);
-    res.send('Hello, World!');
-});
+// Routes
+app.use("/prospect", Prospect)
+app.use("/clienttype", ClientType)
+app.use("/clientcontact", ClientType)
+app.use("/clientaddress", ClientAddress)
 
 // Start the server
 const PORT = process.env.PORT || 3000;

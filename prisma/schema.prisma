@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Prospect {
+  id_prospect Int @id @default(autoincrement())
+  contacts ClientContact[]
+  addresses ClientAddress[]
+  type ClientType @relation(fields: [clientType], references: [id_clientType])
+  identification BigInt
+  name String
+  source String
+  phone Int @unique
+  observation String
+  email String @unique
+  clientType Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  state Boolean @default(true)
+}
+model ClientType{
+  id_clientType Int @id @default(autoincrement())
+  prospects Prospect[]
+  name String @unique
+  description String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  state Boolean @default(true)
+}
+model ClientAddress {
+  id_clientAddress Int @id @default(autoincrement())
+  prospects Prospect @relation(fields: [prospect], references: [id_prospect])
+  prospect Int
+  main Boolean @default(false)
+  coordinates String
+  description String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  state Boolean @default(true)
+}
+model ClientContact {
+  id_clientContact Int @id @default(autoincrement())
+  prospects Prospect @relation(fields: [prospect], references: [id_prospect])
+  prospect Int
+  main Boolean @default(false)
+  phone Int @unique
+  name String
+  identification BigInt
+  description String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  state Boolean @default(true)
+}
