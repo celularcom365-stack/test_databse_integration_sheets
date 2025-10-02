@@ -3,7 +3,7 @@ import morgan from 'morgan';
 import Prospect from './src/routes/Prospect.route.js';
 import ClientType from './src/routes/ClientType.route.js';
 import ClientAddress from './src/routes/ClientAddress.route.js';
-
+import ClientContact from './src/routes/ClientContact.routes.js';
 
 const app = express();
 
@@ -16,7 +16,7 @@ app.use(express.json());
 // Routes
 app.use("/prospect", Prospect)
 app.use("/clienttype", ClientType)
-app.use("/clientcontact", ClientType)
+app.use("/clientcontact", ClientContact)
 app.use("/clientaddress", ClientAddress)
 
 // Start the server

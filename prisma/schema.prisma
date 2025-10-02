@@ -16,38 +16,37 @@ datasource db {
 model Prospect {
   id_prospect Int @id @default(autoincrement())
   contacts ClientContact[]
-  addresses ClientAddress[]
+  interactions Interaction[]
+  client Client? 
   type ClientType @relation(fields: [clientType], references: [id_clientType])
-  identification BigInt
+  identification BigInt @unique
   name String
   source String
-  phone Int @unique
-  observation String
-  email String @unique
+  observation String?
   clientType Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  state Boolean @default(true)
+  visible Boolean @default(true)
 }
 model ClientType{
   id_clientType Int @id @default(autoincrement())
   prospects Prospect[]
   name String @unique
-  description String
+  description String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  state Boolean @default(true)
+  visible Boolean @default(true)
 }
 model ClientAddress {
   id_clientAddress Int @id @default(autoincrement())
-  prospects Prospect @relation(fields: [prospect], references: [id_prospect])
-  prospect Int
+  clients Client @relation(fields: [client], references: [id_client])
+  client Int
   main Boolean @default(false)
   coordinates String
   description String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  state Boolean @default(true)
+  visible Boolean @default(true)
 }
 model ClientContact {
   id_clientContact Int @id @default(autoincrement())
@@ -55,10 +54,182 @@ model ClientContact {
   prospect Int
   main Boolean @default(false)
   phone Int @unique
-  name String
-  identification BigInt
+  name String?
+  identification BigInt?
   description String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  state Boolean @default(true)
+  visible Boolean @default(true)
+}
+model Advisor {
+  id_advisor Int @id @default(autoincrement())
+  interactions Interaction[]
+  preSales PreSale[]
+  postSales PostSale[]
+  identification BigInt @unique
+  name String
+  lastName String
+  phone Int @unique
+  email String @unique
+  password String
+  gender String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+model Interaction {
+  id_interaction Int @id @default(autoincrement())
+  porspect Prospect @relation(fields: [prospects], references: [id_prospect])
+  advisor Advisor @relation(fields: [advisors], references: [id_advisor])
+  prospects Int
+  advisors Int
+  result String
+  observation String
+  nextAction DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+model Client {
+  id_client Int @id @default(autoincrement())
+  prospects Prospect @relation(fields: [prospect], references: [id_prospect])
+  addresses ClientAddress[]
+  preSales PreSale[]
+  postSales PostSale[]
+  prospect Int @unique
+  phone Int @unique
+  observation String
+  email String @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+model PreSale {
+  id_preSale Int @id @default(autoincrement())
+  clients Client @relation(fields: [client], references: [id_client])
+  advisors Advisor @relation(fields: [advisor], references: [id_advisor])
+  productXPreSales ProductXPreSale[]
+  quotations Quotation[]
+  client Int
+  advisor Int
+  closureProbability Int
+  result String
+  estimatedClosingDate DateTime
+  estimatedTotal Float
+  observation String
+  nextAction DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+model Product {
+  id_product Int @id @default(autoincrement())
+  types ProductType @relation(fields: [type], references: [id_productType])
+  productXPreSales ProductXPreSale[]
+  type Int
+  name String @unique
+  description String
+  havePrice Boolean @default(true)
+  price Float
+  // iva
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+model ProductXPreSale {
+  id_productXPreSale Int @id @default(autoincrement())
+  preSales PreSale @relation(fields: [preSale], references: [id_preSale])
+  products Product @relation(fields: [product], references: [id_product])
+  preSale Int
+  product Int
+  quantity Int
+  // iva - subtotal
+  total Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+model ProductType {
+  id_productType Int @id @default(autoincrement())
+  products Product[]
+  name String @unique
+  description String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+model User {
+  id_user Int @id @default(autoincrement())
+  roles Role @relation(fields: [role], references: [id_role])
+  identification BigInt @unique
+  userName String @unique
+  email String @unique
+  password String
+  lastLogin DateTime?
+  role Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+model Role {
+  id_role Int @id @default(autoincrement())
+  users User[]
+  name String @unique
+  description String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+model Quotation {
+  id_quotation Int @id @default(autoincrement())
+  sale Sale?
+  preSales PreSale @relation(fields: [preSale], references: [id_preSale])
+  preSale Int @unique
+  //fileUrl String
+  state String
+  observation String
+  applicationDate DateTime @default(now())
+  recivedDate DateTime?
+  validDate DateTime
+  total Float
+  // iva
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+model Sale {
+  id_sale Int @id @default(autoincrement())
+  quotations Quotation @relation(fields: [quotation], references: [id_quotation])
+  dispatches Dispatch[]
+  quotation Int @unique
+  saleDate DateTime @default(now())
+  startDate DateTime @default(now())
+  endDate DateTime?
+  contract String @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+model Dispatch {
+  id_dispatch Int @id @default(autoincrement())
+  sales Sale @relation(fields: [sale], references: [id_sale])
+  sale Int
+  dispatchDate DateTime @default(now())
+  address String
+  receiver String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+model PostSale{
+  id_postSale Int @id @default(autoincrement())
+  advisors Advisor @relation(fields: [advisor], references: [id_advisor])
+  clients Client @relation(fields: [client], references: [id_client])
+  client Int
+  advisor Int
+  servicadvisoreDate DateTime @default(now())
+  description String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
 }

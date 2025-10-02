@@ -7,10 +7,10 @@ router.get("/", listProspect);
 
 router.get("/", listProspects);
 
-router.post("/", updateProspect);
+router.post("/", createProspect);
 
-router.put("/", deleteProspect);
+router.put("/", updateProspect);
 
-router.delete("/", createProspect);
+router.delete("/", deleteProspect);
 
 export default router;
