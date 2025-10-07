@@ -26,7 +26,7 @@ export const createClientContact = async (req, res) => {
                 description
             }
         });
-        res.status(201).json(newClientContact);
+        res.status(201).json({"message": "Client contact created"});
     }
     catch(error){
         console.error(error.message);
