@@ -15,15 +15,14 @@ datasource db {
 
 model Prospect {
   id_prospect Int @id @default(autoincrement())
-  contacts ClientContact[]
   interactions Interaction[]
   client Client? 
-  type ClientType @relation(fields: [clientType], references: [id_clientType])
-  identification BigInt @unique
+  type ClientType @relation(fields: [typeId], references: [id_clientType])
+  identification String @unique
   name String
   source String
   observation String?
-  clientType Int
+  typeId Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
@@ -37,52 +36,67 @@ model ClientType{
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 }
-model ClientAddress {
-  id_clientAddress Int @id @default(autoincrement())
-  clients Client @relation(fields: [client], references: [id_client])
-  client Int
+enum OwnerType {
+  Client
+  Advisor
+}
+enum gender {
+  Masculino
+  Femenino
+  Otro
+}
+model Address {
+  id_address Int @id @default(autoincrement())
+  ownerType OwnerType
+  ownerId Int
   main Boolean @default(false)
   coordinates String
-  description String
+  description String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
+
+  @@index([ownerType, ownerId])
 }
-model ClientContact {
-  id_clientContact Int @id @default(autoincrement())
-  prospects Prospect @relation(fields: [prospect], references: [id_prospect])
-  prospect Int
+model Contact {
+  id_contact Int @id @default(autoincrement())
+  ownerType OwnerType
+  ownerId Int
   main Boolean @default(false)
-  phone Int @unique
+  phone String @unique
   name String?
-  identification BigInt?
-  description String
+  description String?
+  startDate DateTime?
+  endDate DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
+
+  @@index([ownerType, ownerId])
 }
 model Advisor {
   id_advisor Int @id @default(autoincrement())
   interactions Interaction[]
   preSales PreSale[]
   postSales PostSale[]
-  identification BigInt @unique
+  reports Report[]
+  rosters Roster[]
+  user User?
+  identification String @unique
   name String
   lastName String
-  phone Int @unique
-  email String @unique
-  password String
-  gender String
+  gender gender
+  birthDate DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 }
 model Interaction {
   id_interaction Int @id @default(autoincrement())
-  porspect Prospect @relation(fields: [prospects], references: [id_prospect])
-  advisor Advisor @relation(fields: [advisors], references: [id_advisor])
-  prospects Int
-  advisors Int
+  prospect Prospect @relation(fields: [prospectId], references: [id_prospect])
+  advisor Advisor @relation(fields: [advisorId], references: [id_advisor])
+  prospectId Int
+  advisorId Int
   result String
   observation String
   nextAction DateTime
@@ -92,30 +106,29 @@ model Interaction {
 }
 model Client {
   id_client Int @id @default(autoincrement())
-  prospects Prospect @relation(fields: [prospect], references: [id_prospect])
-  addresses ClientAddress[]
+  prospect Prospect @relation(fields: [prospectId], references: [id_prospect])
   preSales PreSale[]
   postSales PostSale[]
-  prospect Int @unique
-  phone Int @unique
+  prospectId Int @unique
   observation String
   email String @unique
+  birthDate DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 }
 model PreSale {
   id_preSale Int @id @default(autoincrement())
-  clients Client @relation(fields: [client], references: [id_client])
-  advisors Advisor @relation(fields: [advisor], references: [id_advisor])
+  client Client @relation(fields: [clientId], references: [id_client])
+  advisor Advisor @relation(fields: [advisorId], references: [id_advisor])
   productXPreSales ProductXPreSale[]
   quotations Quotation[]
-  client Int
-  advisor Int
+  clientId Int
+  advisorId Int
   closureProbability Int
   result String
   estimatedClosingDate DateTime
-  estimatedTotal Float
+  estimatedTotal Decimal @db.Decimal(10,2)
   observation String
   nextAction DateTime
   createdAt DateTime @default(now())
@@ -124,27 +137,27 @@ model PreSale {
 }
 model Product {
   id_product Int @id @default(autoincrement())
-  types ProductType @relation(fields: [type], references: [id_productType])
+  type ProductType @relation(fields: [typeId], references: [id_productType])
   productXPreSales ProductXPreSale[]
-  type Int
+  commissionDetails CommissionDetail[]
+  typeId Int
   name String @unique
-  description String
+  description String?
   havePrice Boolean @default(true)
-  price Float
-  // iva
+  price Decimal @db.Decimal(10,2)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 }
 model ProductXPreSale {
   id_productXPreSale Int @id @default(autoincrement())
-  preSales PreSale @relation(fields: [preSale], references: [id_preSale])
-  products Product @relation(fields: [product], references: [id_product])
-  preSale Int
-  product Int
+  preSale PreSale @relation(fields: [preSaleId], references: [id_preSale])
+  product Product @relation(fields: [productId], references: [id_product])
+  preSaleId Int
+  productId Int
   quantity Int
   // iva - subtotal
-  total Float
+  total Decimal @db.Decimal(10,2)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
@@ -153,20 +166,21 @@ model ProductType {
   id_productType Int @id @default(autoincrement())
   products Product[]
   name String @unique
-  description String
+  description String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 }
 model User {
   id_user Int @id @default(autoincrement())
-  roles Role @relation(fields: [role], references: [id_role])
-  identification BigInt @unique
+  role Role @relation(fields: [roleId], references: [id_role])
+  advisor Advisor? @relation(fields: [advisorId], references: [id_advisor])
+  advisorId Int? @unique
   userName String @unique
   email String @unique
   password String
   lastLogin DateTime?
-  role Int
+  roleId Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
@@ -175,7 +189,7 @@ model Role {
   id_role Int @id @default(autoincrement())
   users User[]
   name String @unique
-  description String
+  description String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
@@ -183,25 +197,23 @@ model Role {
 model Quotation {
   id_quotation Int @id @default(autoincrement())
   sale Sale?
-  preSales PreSale @relation(fields: [preSale], references: [id_preSale])
-  preSale Int @unique
-  //fileUrl String
+  preSale PreSale @relation(fields: [preSaleId], references: [id_preSale])
+  preSaleId Int @unique
   state String
   observation String
   applicationDate DateTime @default(now())
-  recivedDate DateTime?
+  receivedDate DateTime?
   validDate DateTime
-  total Float
-  // iva
+  total Decimal @db.Decimal(10,2)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 }
 model Sale {
   id_sale Int @id @default(autoincrement())
-  quotations Quotation @relation(fields: [quotation], references: [id_quotation])
+  quotation Quotation @relation(fields: [quotationId], references: [id_quotation])
   dispatches Dispatch[]
-  quotation Int @unique
+  quotationId Int @unique
   saleDate DateTime @default(now())
   startDate DateTime @default(now())
   endDate DateTime?
@@ -212,8 +224,8 @@ model Sale {
 }
 model Dispatch {
   id_dispatch Int @id @default(autoincrement())
-  sales Sale @relation(fields: [sale], references: [id_sale])
-  sale Int
+  sale Sale @relation(fields: [saleId], references: [id_sale])
+  saleId Int
   dispatchDate DateTime @default(now())
   address String
   receiver String
@@ -223,12 +235,88 @@ model Dispatch {
 }
 model PostSale{
   id_postSale Int @id @default(autoincrement())
-  advisors Advisor @relation(fields: [advisor], references: [id_advisor])
-  clients Client @relation(fields: [client], references: [id_client])
-  client Int
-  advisor Int
-  servicadvisoreDate DateTime @default(now())
-  description String
+  advisor Advisor @relation(fields: [advisorId], references: [id_advisor])
+  client Client @relation(fields: [clientId], references: [id_client])
+  clientId Int
+  advisorId Int
+  serviceDate DateTime @default(now())
+  observation String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+model Expense {
+  id_expense Int @id @default(autoincrement())
+  report Report[]
+  amountDays Int
+  lunch Decimal @db.Decimal(10,2)
+  transport Decimal @db.Decimal(10,2)
+  total Decimal @db.Decimal(10,2)
+  observation String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+
+model Commission {
+  id_commission Int @id @default(autoincrement())
+  report Report[]
+  commissionDetail CommissionDetail[]
+  total Decimal @db.Decimal(10,2)
+  observation String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+model CommissionDetail {
+  id_commissionDetail Int @id @default(autoincrement())
+  product Product @relation(fields: [productId], references: [id_product])
+  commission Commission @relation(fields: [commissionId], references: [id_commission])
+  amount Int
+  percentage Decimal @db.Decimal(10,2)
+  total Decimal @db.Decimal(10,2)
+  productId Int
+  commissionId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+model Report {
+  id_report Int @id @default(autoincrement())
+  expense Expense @relation(fields: [expenseId], references: [id_expense])
+  commission Commission @relation(fields: [commissionId], references: [id_commission])
+  advisor Advisor @relation(fields: [advisorId], references: [id_advisor])
+  startDate DateTime
+  endDate DateTime
+  total Decimal @db.Decimal(10,2)
+  expenseId Int
+  commissionId Int
+  advisorId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+model Service {
+  id_service Int @id @default(autoincrement())
+  rosters Roster[]
+  name String @unique
+  description String?
+  supervisor String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+model Roster {
+  id_roster Int @id @default(autoincrement())
+  service Service @relation(fields: [serviceId], references: [id_service])
+  advisor Advisor @relation(fields: [advisorId], references: [id_advisor])
+  serviceId Int
+  advisorId Int
+  startDate DateTime
+  endDate DateTime
+  value Decimal @db.Decimal(10,2)
+  modality String
+  fixedSalary Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
