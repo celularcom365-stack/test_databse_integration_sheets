@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 16px;
+        background: #f9fafb;
+      }
+      h2 {
+        margin-top: 0;
+        margin-bottom: 12px;
+      }
+      .card {
+        background: #ffffff;
+        border-radius: 10px;
+        padding: 12px;
+        margin-bottom: 12px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      }
+      .label {
+        font-weight: bold;
+        color: #374151;
+      }
+      .value {
+        margin-bottom: 6px;
+        color: #111827;
+      }
+      .contacts {
+        margin-top: 10px;
+      }
+      .contact {
+        padding: 10px;
+        border-radius: 8px;
+        background: #f3f4f6;
+        margin-bottom: 8px;
+      }
+      .phone {
+        font-weight: bold;
+        font-size: 14px;
+      }
+      .desc {
+        font-size: 13px;
+        color: #4b5563;
+      }
+      .btn {
+        width: 100%;
+        margin-top: 10px;
+        padding: 8px;
+        border: none;
+        border-radius: 6px;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .btn.close {
+        background: #6b7280;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>📇 Detalle del Prospecto</h2>
+
+    <div class="card">
+      <div class="value">
+        <span class="label">🔗 Fuente:</span>
+        <?= data.source ?? "—" ?>
+      </div>
+
+      <div class="value">
+        <span class="label">🏷️ Tipo:</span>
+        <?= data.type?.name ?? "—" ?>
+      </div>
+
+      <div class="value">
+        <span class="label">📝 Observación:</span>
+        <?= data.observation ?? "Sin observaciones" ?>
+      </div>
+    </div>
+
+    <div class="card contacts">
+      <div class="label">📞 Contactos</div>
+
+      <? console.log(data) ?>
+      <? console.log("---1---") ?>
+
+      <? if (data.prospectContacts && data.prospectContacts.length) { ?>
+        <? console.log("---2---") ?>
+        <? data.prospectContacts.forEach(function(c){ ?>
+          <div class="contact">
+            <div class="phone">📱 <?= c.phone ?></div>
+            <div class="desc"><?= c.description ?></div>
+          </div>
+        <? }); ?>
+      <? } else { ?>
+        <div class="desc">No hay contactos registrados</div>
+      <? } ?>
+    </div>
+
+    <button class="btn close" onclick="google.script.host.close()">
+      Cerrar
+    </button>
+  </body>
+</html>

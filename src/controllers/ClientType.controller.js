@@ -1,4 +1,4 @@
-import {PrismaClient} from "@prisma/client"
+import { PrismaClient } from "@prisma/client"
 
 const prisma = new PrismaClient()
 
@@ -12,7 +12,7 @@ export const getClientTypes = async (req, res) => {
     }
 }
 
-export const getClientTypeById = async (req, res) => {
+export const getClientType = async (req, res) => {
 
 }
 
@@ -22,7 +22,10 @@ export const createClientType = async (req, res) => {
         const newClientType = await prisma.clientType.create({
             data: {
                 name,
-                description
+                description,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                visible: true
             }
         })
         res.status(201).json(newClientType) 

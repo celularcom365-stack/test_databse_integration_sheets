@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 16px;
+        background: #f9fafb;
+      }
+      
+      h2 {
+        margin-top: 0;
+        margin-bottom: 12px;
+      }
+
+      .card {
+        background: #ffffff;
+        padding: 12px;
+        margin-bottom: 12px;
+        border-radius: 10px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      .label {
+        font-weight: bold;
+        color: #374151;
+      }
+      .value {
+        margin-bottom: 6px;
+        color: #111827;
+      }
+
+      select, input, textarea {
+        width: 100%;
+        padding: 8px 10px;
+        border: none;
+        border-radius: 8px;
+        background: #f3f4f6;
+        font-size: 14px;
+        color: #111827;
+        outline: none;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 70px;
+      }
+
+      .btn {
+        width: 100%;
+        margin-top: 10px;
+        padding: 8px;
+        border: none;
+        border-radius: 6px;
+        color: white;
+        background: #6b7280;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      select:focus,
+      input:focus,
+      textarea:focus {
+        background: #eef2ff;
+        box-shadow: 0 0 0 2px #6366f1;  /* borde azul suave */
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>📞 Registro de Interacción</h2>
+
+    <div class="card">
+      <form id="form">
+
+        <div class="form-group">
+          <div class="value">
+            <span class="label">Canal</span>
+            <select id="channel">
+              <option value="" disabled selected hidden>Seleccione ...</option>
+              <option value="llamada">Llamada</option>
+              <option value="whatsapp">Whatsapp</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="value">
+            <span class="label">Estado Llamada</span>
+            <select id="callState">
+              <option value="" disabled selected hidden>Seleccione ...</option>
+              <option value="contesto">Contestó</option>
+              <option value="no-contesto">No Contestó</option>
+              <option value="corto">Cortó</option>
+              <option value="buzon">Buzón</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="value">
+            <span class="label">Resultado</span>
+            <select id="result">
+              <option value="" disabled selected hidden>Seleccione ...</option>
+              <option value="interesado">Interesado</option>
+              <option value="no-interesado">No Interesado</option>
+              <option value="no-titular">No es titular</option>
+              <option value="gestion">En gestión</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="value">
+            <span class="label">Duración</span>
+            <input type="text" id="duration" placeholder="Ej: 02:15" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="value">
+            <span class="label">Tono Cliente</span>
+            <select id="tone">
+              <option value="" disabled selected hidden>Seleccione ...</option>
+              <option value="positivo">Positivo</option>
+              <option value="negativo">Negativo</option>
+              <option value="neutral">Neutral</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="value">
+            <span class="label">Observación</span>
+            <textarea id="observation" placeholder="Detalles adicionales..."></textarea>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="value">
+            <span class="label">Próxima Interacción</span>
+            <input type="date" id="nextInteraction" />
+          </div>
+        </div>
+      </form>
+    </div>
+    <button type="button" class="btn" onclick="guardar()">Guardar</button>
+  </body>
+</html>

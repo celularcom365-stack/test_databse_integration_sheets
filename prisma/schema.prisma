@@ -13,19 +13,54 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Enums
+
+enum OwnerType {
+  CLIENTE
+  ASESOR
+}
+enum gender {
+  MASCULINO
+  FEMENINO
+  OTRO
+}
+enum callState {
+  CONTESTO
+  NO_CONTESTO
+  CORTO
+  BUZON
+}
+enum channel {
+  LLAMADA
+  WHATSAPP
+  CORREO
+}
+enum intResult {
+  INTERESADO
+  NO_INTERESADO
+  NO_ES_TITULAR
+  EN_PROCESO
+}
+
+// Database schema here
+
 model Prospect {
   id_prospect Int @id @default(autoincrement())
   interactions Interaction[]
   client Client? 
   type ClientType @relation(fields: [typeId], references: [id_clientType])
+  advisor Advisor? @relation(fields: [advisorId], references: [id_advisor])
   identification String @unique
   name String
   source String
   observation String?
+  advisorId Int?
   typeId Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
+
+  prospectContacts Contact[] @relation("ProspectContacts")
 }
 model ClientType{
   id_clientType Int @id @default(autoincrement())
@@ -36,15 +71,7 @@ model ClientType{
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 }
-enum OwnerType {
-  Client
-  Advisor
-}
-enum gender {
-  Masculino
-  Femenino
-  Otro
-}
+
 model Address {
   id_address Int @id @default(autoincrement())
   ownerType OwnerType
@@ -73,6 +100,7 @@ model Contact {
   visible Boolean @default(true)
 
   @@index([ownerType, ownerId])
+  prospects Prospect? @relation("ProspectContacts", fields: [ownerId], references: [id_prospect])
 }
 model Advisor {
   id_advisor Int @id @default(autoincrement())
@@ -81,6 +109,7 @@ model Advisor {
   postSales PostSale[]
   reports Report[]
   rosters Roster[]
+  prospects Prospect[]
   user User?
   identification String @unique
   name String
@@ -97,9 +126,13 @@ model Interaction {
   advisor Advisor @relation(fields: [advisorId], references: [id_advisor])
   prospectId Int
   advisorId Int
-  result String
-  observation String
-  nextAction DateTime
+  channel channel
+  result intResult
+  callState callState
+  duration Decimal @db.Decimal(10,2)
+  clientTone String 
+  observation String?
+  nextAction DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)

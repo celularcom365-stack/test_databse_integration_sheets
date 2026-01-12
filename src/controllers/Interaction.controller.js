@@ -86,3 +86,35 @@ export const deleteInteraction = async (req, res) => {
         res.status(500).json({ "message": error.message });
     }
 }
+
+// Sheets
+export const createInteractionSheets = async (req, res) => {
+    try {
+        const items = req.body;
+
+        const newInteraction = await prisma.interaction.create({
+            data: {
+                advisorId : parseInt(items["advisorId"]),
+                prospectId: parseInt(items["prospectId"]),
+                nextAction: items["nextAction"] || null,
+                observation: items["observation"] || null,
+                result: items["result"],
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                visible: true
+            }
+        });
+        return res.json(newInteraction);
+    } catch (error) {
+        return res.json({ "message": error.message });
+    }    
+}
+
+export const getInteractionsSheets = async (req, res) => {
+    try {
+        const interactions = await prisma.interaction.findMany({ where: { visible: true } });
+        res.json(interactions);
+    } catch (error) {
+        res.status(500).json({ "message": error.message });
+    }
+}
