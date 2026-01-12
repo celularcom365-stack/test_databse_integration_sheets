@@ -52,4 +52,4 @@ jobs:
             sudo docker stop $CONTAINER_ID
             sudo docker rm $CONTAINER_ID
           fi
-          sudo docker run -d --name ${{ secrets.repository_name }} -p 80:3000 ${{ secrets.docker_username }}/${{ secrets.repository_name }}:latest
+          sudo docker run -d --name ${{ secrets.repository_name }} --env-file /home/ubuntu/.env -p 80:3000 ${{ secrets.docker_username }}/${{ secrets.repository_name }}:latest
