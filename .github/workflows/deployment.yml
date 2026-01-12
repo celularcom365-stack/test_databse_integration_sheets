@@ -17,6 +17,6 @@ jobs:
     uses: ./.github/workflows/setupDocker.yml
     secrets:
       ec2_host: ${{ secrets.AWS_HOST_IP }}
-      ec2_key: ${{ secrets.AWS_HOST_IP }}
+      ec2_key: ${{ secrets.AWS_HOST_KEY }}
       docker_username: ${{ secrets.DOCKER_USERNAME }}
       repository_name: ${{ secrets.DOCKER_REPOSITORY_NAME }}
