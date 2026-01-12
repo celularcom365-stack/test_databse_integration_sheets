@@ -13,6 +13,7 @@ jobs:
       repository_name: ${{ secrets.DOCKER_REPOSITORY_NAME }}
 
   ec2-cd-userdomain:
+    needs: login-push-usercreate
     uses: ./.github/workflows/setupDocker.yml
     secrets:
       ec2_host: ${{ secrets.AWS_HOST_IP }}
