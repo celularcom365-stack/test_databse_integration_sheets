@@ -23,7 +23,6 @@ jobs:
           password: ${{ secrets.docker_password }}
 
       - name: Build and push image
-        working-directory: /
         run: |
           docker build -t ${{ secrets.docker_username }}/${{ secrets.repository_name }}:latest .
           docker push ${{ secrets.docker_username }}/${{ secrets.repository_name }}:latest
