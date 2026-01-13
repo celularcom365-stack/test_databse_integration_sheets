@@ -92,11 +92,26 @@ export const createInteractionSheets = async (req, res) => {
     try {
         const items = req.body;
 
+        const prospectId = await prisma.prospect.findFirst({
+            where: {
+                identification: items["prospectId"]
+            },
+            select: {
+                id_prospect: true
+            }
+        });
+
+        if (!prospectId) {
+            return res.status(404).json({ "message": "Prospect not found" });
+        }
+
+        items["prospectId"] = prospectId.id_prospect;
+
         const newInteraction = await prisma.interaction.create({
             data: {
                 advisorId : parseInt(items["advisorId"]),
                 prospectId: parseInt(items["prospectId"]),
-                nextAction: items["nextInteraction"] || null,
+                nextAction: new Date(items["nextInteraction"]) || null,
                 observation: items["observation"] || null,
                 clientTone: items["tone"] || null,
                 duration: items["duration"] || null,
