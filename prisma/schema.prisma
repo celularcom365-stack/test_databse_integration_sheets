@@ -40,6 +40,7 @@ enum intResult {
   NO_INTERESADO
   NO_ES_TITULAR
   EN_PROCESO
+  SIN_COBERTURA
 }
 
 // Database schema here
