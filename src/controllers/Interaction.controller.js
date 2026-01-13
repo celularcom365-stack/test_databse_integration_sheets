@@ -96,9 +96,13 @@ export const createInteractionSheets = async (req, res) => {
             data: {
                 advisorId : parseInt(items["advisorId"]),
                 prospectId: parseInt(items["prospectId"]),
-                nextAction: items["nextAction"] || null,
+                nextAction: items["nextInteraction"] || null,
                 observation: items["observation"] || null,
+                clientTone: items["tone"] || null,
+                duration: items["duration"] || null,
                 result: items["result"],
+                callState: items["callState"] || null,
+                channel: items["channel"] || null,
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 visible: true
