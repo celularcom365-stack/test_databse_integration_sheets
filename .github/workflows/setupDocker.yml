@@ -47,9 +47,9 @@ jobs:
 
           sudo docker pull ${{ secrets.docker_username }}/${{ secrets.repository_name }}:latest
 
-          CONTAINER_ID=$(sudo docker ps -q --filter "name=${{ secrets.repository_name }}")
+          CONTAINER_ID=$(docker ps -q --filter "name=${{ secrets.repository_name }}")
           if [ -n "$CONTAINER_ID" ]; then
-            sudo docker stop $CONTAINER_ID
-            sudo docker rm $CONTAINER_ID
+            docker stop $CONTAINER_ID
+            docker rm $CONTAINER_ID
           fi
-          sudo docker run -d --name ${{ secrets.repository_name }} --env-file /home/ubuntu/.env -p 80:3000 ${{ secrets.docker_username }}/${{ secrets.repository_name }}:latest
+          sudo docker run -d --name ${{ secrets.repository_name }} --env-file /home/ubuntu/.env -p 3000:3000 ${{ secrets.docker_username }}/${{ secrets.repository_name }}:latest
