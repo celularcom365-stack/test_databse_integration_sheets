@@ -3,7 +3,7 @@ import { createInteraction, createInteractionSheets, deleteInteraction, getInter
 
 const router = Router()
 // Sheets
-router.get("/sheets", getInteractionsSheets)
+router.get("/sheets/:advisorId", getInteractionsSheets)
 router.post("/sheets", createInteractionSheets)
 
 // CRM

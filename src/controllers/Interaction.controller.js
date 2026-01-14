@@ -131,7 +131,11 @@ export const createInteractionSheets = async (req, res) => {
 
 export const getInteractionsSheets = async (req, res) => {
     try {
-        const interactions = await prisma.interaction.findMany({ where: { visible: true } });
+        const data = req.params;
+        const interactions = await prisma.interaction.findMany({ where: {
+            advisorId: parseInt(data.advisorId),
+            visible: true 
+        } });
         res.json(interactions);
     } catch (error) {
         res.status(500).json({ "message": error.message });
