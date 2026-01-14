@@ -35,7 +35,7 @@ export const updateContact = async (req, res) => {
 export const deleteContact = async (req, res) => {
 }
 
-
+// Sheets
 
 export const createCont = async (phone, ownerId, ownerType) => {
     try{
@@ -49,6 +49,53 @@ export const createCont = async (phone, ownerId, ownerType) => {
         res.status(201).json(newContact);
     }
     catch(error){
+        console.error(error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
+
+export const getContactsXProspect = async (req, res) => {
+    
+    try{
+        const data = req.body
+
+        const contacts = await prisma.prospect.findMany({
+            where:{
+                identification: data[0].prospectId.toString()
+            },
+            select:{
+                prospectContacts:{
+                    select:{
+                        id_contact: true,
+                        phone: true
+                    }
+                }
+            }
+        })
+        res.json(contacts);
+    }catch(error){
+        console.error(error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+
+}
+
+export const setMainContact = async (req, res) => {
+    const data = req.body;
+
+    console.log(data);
+    
+    try {
+        const updatedContact = await prisma.contact.updateMany({
+            where: {
+                id_contact: parseInt(data["selectedContactId"])
+            },
+            data: {
+                main: true
+            }
+        });
+        res.json(updatedContact);
+    } catch (error) {
         console.error(error.message);
         res.status(500).json({ error: "Internal server error" });
     }

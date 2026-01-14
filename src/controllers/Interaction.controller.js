@@ -132,13 +132,80 @@ export const createInteractionSheets = async (req, res) => {
 export const getInteractionsSheets = async (req, res) => {
     try {
         const data = req.params;
-        const interactions = await prisma.interaction.findMany({ where: {
-            advisorId: parseInt(data.advisorId),
-            visible: true 
-        } });
+        const interactions = await prisma.interaction.findMany({
+            where: {
+                advisorId: parseInt(data.advisorId),
+                visible: true 
+            },
+            select:{
+                createdAt: true,
+                observation: true,
+                result: true,
+                nextAction: true,
+                callState: true,
+                channel: true,
+                duration: true,
+                clientTone: true,
+                prospect:{
+                    select:{
+                        identification: true,
+                        name: true,
+                        prospectContacts:{
+                            where:{
+                                main: true
+                            },
+                            select:{
+                                phone: true,
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        console.log(interactions);
         res.json(interactions);
     } catch (error) {
-        console.log(error);
+        res.status(500).json({ "message": error.message });
+    }
+}
+
+export const getInteractionsTrueSheets = async (req, res) => {
+    try {
+        const data = req.params;
+        const interactions = await prisma.interaction.findMany({
+            where: {
+                advisorId: parseInt(data.advisorId),
+                visible: true,
+                result: "INTERESADO"
+            },
+            select:{
+                createdAt: true,
+                observation: true,
+                result: true,
+                nextAction: true,
+                callState: true,
+                channel: true,
+                duration: true,
+                clientTone: true,
+                prospect:{
+                    select:{
+                        identification: true,
+                        name: true,
+                        prospectContacts:{
+                            where:{
+                                main: true
+                            },
+                            select:{
+                                phone: true,
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        console.log(interactions);
+        res.json(interactions);
+    } catch (error) {
         res.status(500).json({ "message": error.message });
     }
 }

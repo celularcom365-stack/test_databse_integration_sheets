@@ -1,8 +1,9 @@
 import {Router} from 'express'
-import { createInteraction, createInteractionSheets, deleteInteraction, getInteraction, getInteractions, getInteractionsSheets, updateInteraction } from '../controllers/Interaction.controller.js'
+import { createInteraction, createInteractionSheets, deleteInteraction, getInteraction, getInteractions, getInteractionsSheets, getInteractionsTrueSheets, updateInteraction } from '../controllers/Interaction.controller.js'
 
 const router = Router()
 // Sheets
+router.get("/sheets/prospects/:advisorId", getInteractionsTrueSheets)
 router.get("/sheets/:advisorId", getInteractionsSheets)
 router.post("/sheets", createInteractionSheets)
 
