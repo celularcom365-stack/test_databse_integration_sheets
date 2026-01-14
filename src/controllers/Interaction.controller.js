@@ -111,11 +111,11 @@ export const createInteractionSheets = async (req, res) => {
             data: {
                 advisorId : parseInt(items["advisorId"]),
                 prospectId: parseInt(items["prospectId"]),
-                nextAction: new Date(items["nextInteraction"]) || null,
+                nextAction: new Date(items["nextInteraction"] || null),
                 observation: items["observation"] || null,
                 clientTone: items["tone"] || null,
                 duration: items["duration"] || null,
-                result: items["result"],
+                result: items["result"] || null,
                 callState: items["callState"] || null,
                 channel: items["channel"] || null,
                 createdAt: new Date(),
@@ -125,7 +125,7 @@ export const createInteractionSheets = async (req, res) => {
         });
         return res.json(newInteraction);
     } catch (error) {
-        return res.json({ "message": error.message });
+        return res.status(500).json({ "message": error.message });
     }    
 }
 
@@ -162,7 +162,6 @@ export const getInteractionsSheets = async (req, res) => {
                 }
             }
         });
-        console.log(interactions);
         res.json(interactions);
     } catch (error) {
         res.status(500).json({ "message": error.message });
@@ -203,7 +202,6 @@ export const getInteractionsTrueSheets = async (req, res) => {
                 }
             }
         });
-        console.log(interactions);
         res.json(interactions);
     } catch (error) {
         res.status(500).json({ "message": error.message });

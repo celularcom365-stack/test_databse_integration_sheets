@@ -182,7 +182,10 @@ export const updateProspectSheets = async (req, res) => {
         const data = req.body;
         const updatedProspect = await prisma.prospect.update({
             where: { identification: (data[0].prospect).toString() },
-            data: { advisorId: parseInt(data[0].advisor) },
+            data: { 
+                advisorId: parseInt(data[0].advisor),
+                assignedAt: new Date()
+            },
             select: {
                 name: true,
                 advisor:{
