@@ -123,7 +123,6 @@ export const createInteractionSheets = async (req, res) => {
                 visible: true
             }
         });
-        console.log(newInteraction)
         return res.json(newInteraction);
     } catch (error) {
         return res.status(500).json({ "message": error.message });
