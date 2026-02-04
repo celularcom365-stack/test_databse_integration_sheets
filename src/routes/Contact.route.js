@@ -1,9 +1,10 @@
 import {Router} from "express"
-import { createContact, deleteContact, getContact, getContacts, updateContact, getContactsXProspect, setMainContact } from "../controllers/Contact.controller.js"
+import { createContact, deleteContact, getContact, getContacts, updateContact, getContactsXProspect, setMainContact, createContactSheets } from "../controllers/Contact.controller.js"
 
 const router = Router()
 
 // Sheets
+router.post("/sheets/new", createContactSheets)
 router.post("/sheets/info", getContactsXProspect)
 router.put("/sheets/info", setMainContact)
 

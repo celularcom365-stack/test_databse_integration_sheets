@@ -15,10 +15,6 @@ datasource db {
 
 // Enums
 
-enum OwnerType {
-  CLIENTE
-  ASESOR
-}
 enum gender {
   MASCULINO
   FEMENINO
@@ -29,6 +25,7 @@ enum callState {
   NO_CONTESTO
   CORTO
   BUZON
+  EQUIVOCADO
 }
 enum channel {
   LLAMADA
@@ -39,34 +36,68 @@ enum intResult {
   INTERESADO
   NO_INTERESADO
   NO_ES_TITULAR
-  EN_PROCESO
+  CONTACTAR_OTRO_MOMENTO
   SIN_COBERTURA
+  CLIENTE
+}
+enum UserState {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+enum BankAccountType {
+  SAVINGS
+  CHECKING
+}
+enum DocumentOwnerType {
+  PROSPECT
+  CLIENT
+  ADVISOR
+  SALE
+  PRESALE
+  COMPANY
+}
+enum DocumentStatus {
+  PENDING
+  UPLOADED
+  VERIFIED
+  REJECTED
+  EXPIRED
 }
 
 // Database schema here
 
-model Prospect {
-  id_prospect Int @id @default(autoincrement())
-  interactions Interaction[]
-  client Client? 
-  type ClientType @relation(fields: [typeId], references: [id_clientType])
-  advisor Advisor? @relation(fields: [advisorId], references: [id_advisor])
-  identification String @unique
-  name String
-  source String
-  observation String?
-  advisorId Int?
-  assignedAt DateTime?
-  typeId Int
+model User {
+  id Int @id @default(autoincrement())
+  //
+  role Role @relation(fields: [roleId], references: [id])
+  advisor Advisor? @relation(fields: [advisorId], references: [id])
+  auditLog AuditLog[]
+
+  emailVerification EmailVerification[]
+  notification Notification[]
+  document Document[]
+  terms TermsAcceptance?
+
+  advisorId Int? @unique
+  roleId Int
+  //
+  userName String @unique
+  email String @unique
+  password String
+  lastLogin DateTime?
+  emailVerified Boolean @default(false)
+  state UserState @default(ACTIVE)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
-
-  prospectContacts Contact[] @relation("ProspectContacts")
 }
-model ClientType{
-  id_clientType Int @id @default(autoincrement())
-  prospects Prospect[]
+
+model Role {
+  id Int @id @default(autoincrement())
+  //
+  users User[]
+  //
   name String @unique
   description String?
   createdAt DateTime @default(now())
@@ -74,45 +105,135 @@ model ClientType{
   visible Boolean @default(true)
 }
 
-model Address {
-  id_address Int @id @default(autoincrement())
-  ownerType OwnerType
-  ownerId Int
-  main Boolean @default(false)
-  coordinates String
-  description String?
+model EmailVerification{
+  id Int @id @default(autoincrement())
+  //
+  user User @relation(fields: [userId], references: [id])
+  //
+  userId Int
+  token String
+  expiresAt DateTime
+  used Boolean
+  createdAt DateTime @default(now())
+}
+
+model TermsAcceptance{
+  id Int @id @default(autoincrement())
+  //
+  user User @relation(fields: [userId], references: [id])
+  //
+  userId Int @unique
+  termsVersion String
+  privacyVersion String
+  ipAddress String
+  userAgent String
+  acceptedAt DateTime
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
-
-  @@index([ownerType, ownerId])
+  @@index([userId])
 }
-model Contact {
-  id_contact Int @id @default(autoincrement())
-  ownerType OwnerType
-  ownerId Int
-  main Boolean @default(false)
-  phone String @unique
-  name String?
-  description String?
-  startDate DateTime?
+
+model ProspectAssignment {
+  id Int @id @default(autoincrement())
+  //
+  prospect Prospect @relation(fields: [prospectId], references: [id])
+  advisor Advisor @relation(fields: [advisorId], references: [id])
+  company Company @relation(fields: [companyId], references: [id])
+
+  advisorId Int
+  prospectId Int
+  companyId Int
+  //
+  assignedAt DateTime @default(now())
   endDate DateTime?
+  reason String?
+  current Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 
-  @@index([ownerType, ownerId])
-  prospects Prospect? @relation("ProspectContacts", fields: [ownerId], references: [id_prospect])
+  @@index([prospectId, companyId, current])
+  @@index([advisorId, assignedAt])
+
 }
+
+model Notification {
+  id Int @id @default(autoincrement())
+  //
+  user User? @relation(fields: [userId], references: [id])
+  //
+  title String
+  message String
+  read Boolean @default(false)
+  userId Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+
+model BankAccount {
+  id Int @id @default(autoincrement())
+  //
+  advisor Advisor @relation(fields: [advisorId], references: [id])
+
+  advisorId Int
+  //
+  bankName String
+  accountType BankAccountType
+  accountNumber String
+  holderName String?
+  holderDocument String
+  main Boolean @default(false)
+  verified Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+
+  @@unique([advisorId, main])
+  @@index([advisorId])
+}
+
+model Prospect {
+  id Int @id @default(autoincrement())
+  //
+  type ClientType @relation(fields: [typeId], references: [id])
+  industry Industry? @relation(fields: [industryId], references: [id])
+
+  contact ProspectContact[]
+  interaction Interaction[]
+  address ProspectAddress[]
+  prospectAssignment ProspectAssignment[]
+  client Client?
+
+  typeId Int
+  industryId Int?
+  //
+  identification String? @unique
+  name String
+  source String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+
 model Advisor {
-  id_advisor Int @id @default(autoincrement())
-  interactions Interaction[]
-  preSales PreSale[]
-  postSales PostSale[]
+  id Int @id @default(autoincrement())
+  //
+  interaction Interaction[]
+  preSale PreSale[]
+  postSale PostSale[]
   reports Report[]
-  rosters Roster[]
-  prospects Prospect[]
+  roster Roster[]
+  contact AdvisorContact[]
+  address AdvisorAddress[]
+  prospectAssignment ProspectAssignment[]
+  bankAccount BankAccount[]
   user User?
+  //
   identification String @unique
   name String
   lastName String
@@ -122,118 +243,235 @@ model Advisor {
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 }
+
+model ClientType{
+  id Int @id @default(autoincrement())
+  //
+  prospects Prospect[]
+  //
+  name String @unique
+  description String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+
+model ProspectAddress {
+  id Int @id @default(autoincrement())
+  //
+  prospect Prospect @relation(fields: [ownerId], references: [id])
+  city City @relation(fields: [cityId], references: [id])
+
+  cityId Int
+  ownerId Int
+  //
+  main Boolean @default(false)
+  coordinates String?
+  description String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+
+model AdvisorAddress {
+  id Int @id @default(autoincrement())
+  //
+  advisor Advisor @relation(fields: [ownerId], references: [id])
+  city City @relation(fields: [cityId], references: [id])
+
+  cityId Int
+  ownerId Int
+  //
+  coordinates String?
+  description String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+
+model ProspectContact {
+  id Int @id @default(autoincrement())
+  //
+  prospect Prospect @relation(fields: [ownerId], references: [id])
+
+  ownerId Int
+  //
+  main Boolean @default(false)
+  phone String @unique
+  name String?
+  description String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+
+model AdvisorContact {
+  id Int @id @default(autoincrement())
+  //
+  advisor Advisor @relation(fields: [ownerId], references: [id])
+
+  ownerId Int
+  //
+  main Boolean @default(false)
+  phone String @unique
+  description String?
+  startDate DateTime?
+  endDate DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+
 model Interaction {
-  id_interaction Int @id @default(autoincrement())
-  prospect Prospect @relation(fields: [prospectId], references: [id_prospect])
-  advisor Advisor @relation(fields: [advisorId], references: [id_advisor])
+  id Int @id @default(autoincrement())
+  //
+  prospect Prospect @relation(fields: [prospectId], references: [id])
+  advisor Advisor @relation(fields: [advisorId], references: [id])
+
   prospectId Int
   advisorId Int
+  //
   channel channel
-  result intResult?
   callState callState
   duration Decimal? @db.Decimal(10,2)
-  clientTone String? 
+  clientTone String?
   observation String?
+  result intResult?
   nextAction DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
+
+  @@index([advisorId, createdAt])
+  @@index([prospectId, result])
 }
+
 model Client {
-  id_client Int @id @default(autoincrement())
-  prospect Prospect @relation(fields: [prospectId], references: [id_prospect])
+  id Int @id @default(autoincrement())
+  //
+  prospect Prospect? @relation(fields: [prospectId], references: [id])
+
   preSales PreSale[]
   postSales PostSale[]
-  prospectId Int @unique
+
+  prospectId Int? @unique
+  //
   observation String
   email String @unique
   birthDate DateTime
+  convertedAt DateTime @default(now())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 }
+
 model PreSale {
-  id_preSale Int @id @default(autoincrement())
-  client Client @relation(fields: [clientId], references: [id_client])
-  advisor Advisor @relation(fields: [advisorId], references: [id_advisor])
-  productXPreSales ProductXPreSale[]
+  id Int @id @default(autoincrement())
+  //
+  client Client @relation(fields: [clientId], references: [id])
+  advisor Advisor @relation(fields: [advisorId], references: [id])
+
+  preSalesProduct PreSaleProduct[]
+  preSaleState PreSaleState[]
   quotations Quotation[]
+
   clientId Int
   advisorId Int
-  closureProbability Int
-  result String
-  estimatedClosingDate DateTime
-  estimatedTotal Decimal @db.Decimal(10,2)
-  observation String
-  nextAction DateTime
+  //
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 }
+
+model PreSaleState{
+  id Int @id @default(autoincrement())
+  //
+  preSale PreSale @relation(fields: [preSaleId], references: [id])
+
+  preSaleId Int
+  //
+  closureProbability Int
+  estimatedClosingDate DateTime?
+  estimatedTotal Decimal? @db.Decimal(10,2)
+  observation String?
+  result String?
+  main Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+
+model CategoryProduct{
+  id Int @id @default(autoincrement())
+  //
+  products Product[]
+  //
+  name String @unique
+  description String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+
 model Product {
-  id_product Int @id @default(autoincrement())
-  type ProductType @relation(fields: [typeId], references: [id_productType])
-  productXPreSales ProductXPreSale[]
-  commissionDetails CommissionDetail[]
+  id Int @id @default(autoincrement())
+  //
+  company Company @relation(fields: [typeId], references: [id])
+  category CategoryProduct @relation(fields: [categoryId], references: [id])
+
+  preSalesProduct PreSaleProduct[]
+  commissionProduct CommissionProduct[]
+
   typeId Int
+  categoryId Int
+  //
   name String @unique
   description String?
   havePrice Boolean @default(true)
-  price Decimal @db.Decimal(10,2)
+  price Decimal? @db.Decimal(10,2)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 }
-model ProductXPreSale {
-  id_productXPreSale Int @id @default(autoincrement())
-  preSale PreSale @relation(fields: [preSaleId], references: [id_preSale])
-  product Product @relation(fields: [productId], references: [id_product])
+
+model PreSaleProduct {
+  id Int @id @default(autoincrement())
+  //
+  preSale PreSale @relation(fields: [preSaleId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
   preSaleId Int
   productId Int
+  //
   quantity Int
-  // iva - subtotal
   total Decimal @db.Decimal(10,2)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 }
-model ProductType {
-  id_productType Int @id @default(autoincrement())
+
+model Company {
+  id Int @id @default(autoincrement())
+  //
   products Product[]
+  prospectAssignment ProspectAssignment[]
+  //
   name String @unique
   description String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 }
-model User {
-  id_user Int @id @default(autoincrement())
-  role Role @relation(fields: [roleId], references: [id_role])
-  advisor Advisor? @relation(fields: [advisorId], references: [id_advisor])
-  advisorId Int? @unique
-  userName String @unique
-  email String @unique
-  password String
-  lastLogin DateTime?
-  roleId Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  visible Boolean @default(true)
-}
-model Role {
-  id_role Int @id @default(autoincrement())
-  users User[]
-  name String @unique
-  description String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  visible Boolean @default(true)
-}
+
 model Quotation {
-  id_quotation Int @id @default(autoincrement())
+  id Int @id @default(autoincrement())
+  //
+  preSale PreSale @relation(fields: [preSaleId], references: [id])
+
   sale Sale?
-  preSale PreSale @relation(fields: [preSaleId], references: [id_preSale])
+
   preSaleId Int @unique
+  //
   state String
   observation String
   applicationDate DateTime @default(now())
@@ -244,109 +482,154 @@ model Quotation {
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 }
+
 model Sale {
-  id_sale Int @id @default(autoincrement())
-  quotation Quotation @relation(fields: [quotationId], references: [id_quotation])
+  id Int @id @default(autoincrement())
+  //
+  quotation Quotation @relation(fields: [quotationId], references: [id])
+
   dispatches Dispatch[]
+
   quotationId Int @unique
+  //
   saleDate DateTime @default(now())
   startDate DateTime @default(now())
   endDate DateTime?
-  contract String @unique
+  contract String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 }
+
 model Dispatch {
-  id_dispatch Int @id @default(autoincrement())
-  sale Sale @relation(fields: [saleId], references: [id_sale])
+  id Int @id @default(autoincrement())
+  //
+  sale Sale @relation(fields: [saleId], references: [id])
+
   saleId Int
+  //
   dispatchDate DateTime @default(now())
-  address String
   receiver String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 }
+
 model PostSale{
-  id_postSale Int @id @default(autoincrement())
-  advisor Advisor @relation(fields: [advisorId], references: [id_advisor])
-  client Client @relation(fields: [clientId], references: [id_client])
+  id Int @id @default(autoincrement())
+  //
+  advisor Advisor @relation(fields: [advisorId], references: [id])
+  client Client @relation(fields: [clientId], references: [id])
+
   clientId Int
   advisorId Int
+  //
   serviceDate DateTime @default(now())
   observation String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 }
-model Expense {
-  id_expense Int @id @default(autoincrement())
-  report Report[]
+
+model ExpenseType{
+  id Int @id @default(autoincrement())
+  //
+  expenses ExpenseDetail[]
+  //
+  name String @unique
+  description String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+
+model ExpenseDetail {
+  id Int @id @default(autoincrement())
+  //
+  type ExpenseType @relation(fields: [typeId], references: [id])
+  expense Expense @relation(fields: [expenseId], references: [id])
+
+  typeId Int
+  expenseId Int
+  //
   amountDays Int
-  lunch Decimal @db.Decimal(10,2)
-  transport Decimal @db.Decimal(10,2)
+  description String?
+  amount Decimal @db.Decimal(10,2)
   total Decimal @db.Decimal(10,2)
-  observation String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+
+model Expense {
+  id Int @id @default(autoincrement())
+  //
+  report Report[]
+  expenseDetail ExpenseDetail[]
+  //
+  observation String?
+  total Decimal @db.Decimal(10,2)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 }
 
 model Commission {
-  id_commission Int @id @default(autoincrement())
+  id Int @id @default(autoincrement())
+  //
   report Report[]
-  commissionDetail CommissionDetail[]
+  commissionProduct CommissionProduct[]
+  //
   total Decimal @db.Decimal(10,2)
-  observation String
+  observation String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 }
-model CommissionDetail {
-  id_commissionDetail Int @id @default(autoincrement())
-  product Product @relation(fields: [productId], references: [id_product])
-  commission Commission @relation(fields: [commissionId], references: [id_commission])
-  amount Int
-  percentage Decimal @db.Decimal(10,2)
-  total Decimal @db.Decimal(10,2)
+
+model CommissionProduct {
+  id Int @id @default(autoincrement())
+  //
+  product Product @relation(fields: [productId], references: [id])
+  commission Commission @relation(fields: [commissionId], references: [id])
+
   productId Int
   commissionId Int
+  //
+  amount Decimal @db.Decimal(10,2)
+  percentage Decimal @db.Decimal(10,2)
+  total Decimal @db.Decimal(10,2)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 }
+
 model Report {
-  id_report Int @id @default(autoincrement())
-  expense Expense @relation(fields: [expenseId], references: [id_expense])
-  commission Commission @relation(fields: [commissionId], references: [id_commission])
-  advisor Advisor @relation(fields: [advisorId], references: [id_advisor])
-  startDate DateTime
-  endDate DateTime
-  total Decimal @db.Decimal(10,2)
+  id Int @id @default(autoincrement())
+  //
+  expense Expense @relation(fields: [expenseId], references: [id])
+  commission Commission @relation(fields: [commissionId], references: [id])
+  advisor Advisor @relation(fields: [advisorId], references: [id])
+  
   expenseId Int
   commissionId Int
   advisorId Int
+  //
+  startDate DateTime
+  endDate DateTime
+  total Decimal @db.Decimal(10,2)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
 }
-model Service {
-  id_service Int @id @default(autoincrement())
-  rosters Roster[]
-  name String @unique
-  description String?
-  supervisor String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  visible Boolean @default(true)
-}
+
 model Roster {
-  id_roster Int @id @default(autoincrement())
-  service Service @relation(fields: [serviceId], references: [id_service])
-  advisor Advisor @relation(fields: [advisorId], references: [id_advisor])
-  serviceId Int
+  id Int @id @default(autoincrement())
+  //
+  advisor Advisor @relation(fields: [advisorId], references: [id])
+
   advisorId Int
+  //
   startDate DateTime
   endDate DateTime
   value Decimal @db.Decimal(10,2)
@@ -355,4 +638,96 @@ model Roster {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   visible Boolean @default(true)
+}
+
+model Province {
+  id Int @id @default(autoincrement())
+  //
+  cities City[]
+  //
+  name String @unique
+}
+
+model City{
+  id Int @id @default(autoincrement())
+  //
+  province Province @relation(fields: [provinceId], references: [id])
+
+  prospectAddress ProspectAddress[]
+  advisorAddress AdvisorAddress[]
+
+  provinceId Int
+  //
+  name String
+}
+
+model Industry {
+  id Int @id @default(autoincrement())
+  //
+  prospects Prospect[]
+  //
+  name String @unique
+  description String?
+}
+
+model DocumentType {
+  id Int @id @default(autoincrement())
+  //
+  document Document[]
+  //
+  name String @unique
+  description String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+}
+
+model Document {
+  id Int @id @default(autoincrement())
+  //
+  user User? @relation(fields: [userId], references: [id])
+  type DocumentType @relation(fields: [typeId], references: [id])
+
+  typeId Int
+  userId Int?
+  //
+  ownerType DocumentOwnerType
+  ownerId Int
+  status DocumentStatus @default(PENDING)
+  fileName String?
+  fileType String?
+  size Int?
+  storagePath String?
+  validFrom DateTime?
+  validUntil DateTime?
+  observation String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  visible Boolean @default(true)
+
+  @@index([ownerType, ownerId])
+  @@index([typeId, status])
+}
+
+model AuditLog {
+  id Int @id @default(autoincrement())
+  //
+  user User @relation(fields: [userId], references: [id])
+
+  userId Int 
+  //
+  action String       // CREATE, UPDATE, DELETE
+  entity String       // Tabla modificada
+  entityId Int?
+  
+  // Campos específicos del cambio
+  fieldName String    // "email", "status", "price"
+  oldValue String?
+  newValue String?
+  
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  
+  @@index([entity, entityId, fieldName])
 }

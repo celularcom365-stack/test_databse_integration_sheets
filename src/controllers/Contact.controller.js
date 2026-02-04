@@ -54,6 +54,48 @@ export const createCont = async (phone, ownerId, ownerType) => {
     }
 }
 
+export const createContactSheets = async (req, res) => {
+    const data = req.body;
+
+    const prospectId = await prisma.prospect.findFirst({
+            where: {
+                identification: data["identification"]
+            },
+            select: {
+                id_prospect: true
+            }
+        });
+
+        if (!prospectId) {
+            return res.status(404).json({ "message": "Prospect not found" });
+        }
+
+        data["prospectId"] = prospectId.id_prospect;
+    
+    try {
+        try{
+            const data = req.body;
+            const newContact = await prisma.contact.create({
+                data: {
+                    phone: data["selectedContactId"],
+                    ownerId: parseInt(data["prospectId"]),
+                    ownerType: "CLIENTE",
+                    updatedAt: new Date()
+                }
+            });
+            res.status(201).json(newContact);
+        }
+        catch(error){
+            console.error(error.message);
+            res.status(500).json({ error: "Internal server error" });
+        }
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+
+}
+
 export const getContactsXProspect = async (req, res) => {
     
     try{
@@ -61,9 +103,10 @@ export const getContactsXProspect = async (req, res) => {
 
         const contacts = await prisma.prospect.findMany({
             where:{
-                identification: data[0].prospectId.toString()
+                identification: data.prospectId.toString()
             },
             select:{
+                identification: true,
                 prospectContacts:{
                     select:{
                         id_contact: true,
@@ -72,6 +115,7 @@ export const getContactsXProspect = async (req, res) => {
                 }
             }
         })
+
         res.json(contacts);
     }catch(error){
         console.error(error.message);
@@ -82,8 +126,6 @@ export const getContactsXProspect = async (req, res) => {
 
 export const setMainContact = async (req, res) => {
     const data = req.body;
-
-    console.log(data);
     
     try {
         const updatedContact = await prisma.contact.updateMany({

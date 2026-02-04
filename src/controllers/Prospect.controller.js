@@ -25,7 +25,6 @@ export const listProspects = async (req, res) => {
 export const listProspect = async (req, res) => {
     // const { name, email, phone } = req.body;
     const newUser = await prisma.prospect.findMany()
-    console.log("User Readed", newUser);
     res.json(newUser);
 }
 
@@ -83,7 +82,6 @@ export const createProspect = async (req, res) => {
         res.status(201).json({ message: "Prospects and contacts created successfully" });
     }
     catch(error){
-        console.log(error.message);
         res.status(500).json({ error: "Internal server error" });
     }
 }
@@ -97,6 +95,7 @@ export const listProspectsSheets = async (req, res) => {
             identification: true,
             source: true,
             observation: true,
+            createdAt: true,
             type: {
                 select: {
                     name: true
@@ -129,7 +128,7 @@ export const listProspectsAdvisorSheets = async (req, res) => {
             identification: true,
             source: true,
             observation: true,
-            createdAt: true,
+            assignedAt: true,
             type: {
                 select: {
                     name: true
@@ -137,7 +136,8 @@ export const listProspectsAdvisorSheets = async (req, res) => {
             },
             _count: {
                 select: {
-                    prospectContacts: true
+                    prospectContacts: true,
+                    interactions:true
                 }
             },
             prospectContacts: {
@@ -152,7 +152,7 @@ export const listProspectsAdvisorSheets = async (req, res) => {
 }
 
 export const listProspectAdvisorSheets = async (req, res) => {
-    const { prospectId, advisorId } = req.body[0];
+    const { prospectId, advisorId } = req.body;
     const users = await prisma.prospect.findFirst({
         where: {
             identification: prospectId.toString(),
@@ -180,10 +180,19 @@ export const listProspectAdvisorSheets = async (req, res) => {
 export const updateProspectSheets = async (req, res) => {
     try {
         const data = req.body;
+        let identification = data.prospect.toString().trim();
+
+        // Añadir cero al inicio si tiene longitud 9 o 12
+        if (identification.length === 9 || identification.length === 12) {
+        identification = "0" + identification;
+        }
+
         const updatedProspect = await prisma.prospect.update({
-            where: { identification: (data[0].prospect).toString() },
+            where: { 
+                identification
+            },
             data: { 
-                advisorId: parseInt(data[0].advisor),
+                advisorId: parseInt(data.advisor),
                 assignedAt: new Date()
             },
             select: {
@@ -198,13 +207,13 @@ export const updateProspectSheets = async (req, res) => {
         res.json(updatedProspect);
     }
     catch (error) {
-        console.log(error);
+        console.log(error.message);
         res.status(500).json({ error: "Internal server error" });
     }
 }
 
 export const listProspectsInfoSheets = async (req, res) => {
-    var identification = (req.body[0].prospect).toString();
+    var identification = (req.body.prospect).toString();
     if(identification.length==12 || identification.length==9){
         identification = "0"+identification;
     }

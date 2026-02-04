@@ -89,6 +89,7 @@ export const deleteInteraction = async (req, res) => {
 
 // Sheets
 export const createInteractionSheets = async (req, res) => {
+    console.log(req.body)
     try {
         const items = req.body;
 
@@ -126,6 +127,7 @@ export const createInteractionSheets = async (req, res) => {
         console.log(newInteraction)
         return res.json(newInteraction);
     } catch (error) {
+        console.log(error.message)
         return res.status(500).json({ "message": error.message });
     }    
 }

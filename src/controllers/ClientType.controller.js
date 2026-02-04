@@ -37,7 +37,19 @@ export const createClientType = async (req, res) => {
 }
 
 export const updateClientType = async (req, res) => {
+    try{
+        const data = await req.body
+        const newClientType = await prisma.clientType.update({
+            where:{
 
+            },
+            data:{
+
+            }
+        })
+    }catch(error){
+        return res.josn.status(500)("Can't update clientType")
+    }
 }
 
 export const deleteClientType = async (req, res) => { 
