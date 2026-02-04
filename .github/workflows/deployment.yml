@@ -2,7 +2,7 @@ name: Registry image
 
 on:
   push:
-    branches: ["main"]
+    branches: ["dev"]
 
 jobs:
   login-push-usercreate:
